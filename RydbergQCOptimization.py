@@ -97,104 +97,7 @@ def directQAOA(times,psiI,ver=7,parallel=1,op=0):
         else:
             index=indexTime
             time=times[index]
-#        if abs(times[index])<1E-2:
-#          times[index]=np.sign(times[index])*1E-2
-        if ver==0:
-            if index % 3 ==0:    
-                #tHz1
-                tH=gensZ(times[index],3,numAtoms)
-            elif index % 3 ==1:
-                #tHzz1
-                tH=genZZF(times[index],3,numAtoms)
-            elif index % 3 ==2:
-                #tHx
-                tH=genX(times[index],numAtoms)
-        elif ver==1:
-            step=index % 5
-            if step ==0:    
-                #tHz1
-                tH=gensZ(times[index],0,numAtoms)
-            elif step==1:  
-                #tHz2
-                tH=gensZ(times[index],1,numAtoms)
-            elif step==2:
-                #tHzz1
-                tH=genZZF(times[index],0,numAtoms)
-            elif step ==3:    
-                #tHz1
-                tH=genZZF(times[index],1,numAtoms)
-            elif step==4:
-                #tHx
-                tH=genX(times[index],numAtoms)
-        elif ver==2:
-            step=index % 2
-            if step ==0:    
-                #tHzz
-                tH=genZZF(times[index],3,numAtoms)
-            elif step==1:  
-                #tHx
-                tH=genX(times[index],numAtoms)
-        elif ver==3:
-            step=index % 5
-            if step ==0:    
-                #tHz1
-                tH=gensZt(times[index],0,numAtoms)
-            elif step==1:  
-                #tHz2
-                tH=gensZt(times[index],1,numAtoms)
-            elif step==2:
-                #tHzz1
-                tH=genZZF(times[index],0,numAtoms)
-            elif step ==3:    
-                #tHz1
-                tH=genZZF(times[index],1,numAtoms)
-            elif step==4:
-                #tHx
-                tH=genX(times[index],numAtoms)
-        elif ver==4:
-            step=index % 4
-            if step ==0:    
-                #tHz1
-                tH=gensZ(times[index],0,numAtoms)
-            elif step==1:  
-                #tHz2
-                tH=gensZ(times[index],1,numAtoms)
-            elif step==2:
-                #tHzz1
-                tH=genZZF(times[index],0,numAtoms)
-            elif step ==3:    
-                #tHz1
-                tH=genZZF(times[index],1,numAtoms)   
-        elif ver==5:
-            step=index % 5
-            if step ==0:    
-                #tHz1
-                tH=gensZt(times[index],0,numAtoms)
-            elif step==1:  
-                #tHz2
-                tH=gensZt(times[index],1,numAtoms)
-            elif step==2:
-                #tHzz1
-                tH=genZZF(times[index],0,numAtoms,1)
-            elif step ==3:    
-                #tHz1
-                tH=genZZF(times[index],1,numAtoms,1)
-            elif step ==4:    
-                #tHz1
-                tH=genX(times[index],numAtoms)
-        elif ver==6:
-            step=index % 3
-            if step ==0:    
-                #tHz1
-                tH=gensZt(times[index],1,numAtoms)*gensZt(times[index],0,numAtoms)
-            elif step==1:
-                #tHzz1
-                tH=genZZF(times[index],3,numAtoms,1)
-            elif step ==2:    
-                #tHz1
-                tH=genX(times[index],numAtoms)   
-                #tHz1
-        elif ver==7:
+        if ver==7:
             step=index % 5
             if step ==0:  
                 tH=genX(times[index],numAtoms)  
@@ -241,17 +144,7 @@ def directQAOA(times,psiI,ver=7,parallel=1,op=0):
 def parseInput(inputTimes,ver=0):
     #Parses a list of x values into a list of lists that contain the parameters
     #required for each step in time
-    if ver==0:
-        paramReq=[2,2,1]
-    elif ver==1:
-        paramReq=[2,2,2,2,1]
-    elif ver==2:
-        paramReq=[2,1]
-    elif ver==3:
-        paramReq=[1,1,2,2,1]
-    elif ver==4:
-        paramReq=[2,2,2,2]
-    elif ver==5 or ver==7:
+    if ver==5 or ver==7:
         paramReq=[1,1,1,1,1]
     elif ver==6 or ver ==8:
         paramReq=[1,1,1]
@@ -272,28 +165,6 @@ def parseInput(inputTimes,ver=0):
     #print(outputTimes)
     return outputTimes
 
-def genEffState_Dep(state):
-    #DEPRECATED
-    s=[0]*2
-    s2=[0]*2
-    s[0]=np.array([[1,0,0]]).T
-    s[1]=np.array([[0,1,0]]).T
-    s2[0]=np.array([[1,0]]).T
-    s2[1]=np.array([[0,1]]).T
-    svec=sparse.lil_matrix(0j*sparse.eye(1,2**numAtoms,1).T)
-    for i1 in range(2**numAtoms):
-        curi1=i1
-        for j1 in range(numAtoms):
-            index1=curi1%2
-            curi1=int(curi1/2)
-            if j1==0:
-                ss1=s[index1]
-                ss2=s2[index1]
-            else:
-                ss1=sparse.kron(ss1,s[index1])
-                ss2=sparse.kron(ss2,s2[index1])
-        svec[ss2.nonzero()[0][0]]=np.complex(ss1.T*state)
-    return svec
 def genProj(numAtoms):
     #Generate a projector that takes a matrix from 3 level numAtoms system to 2 level numAtoms system
     #This gets rydberg of the Rydberg state
@@ -325,44 +196,13 @@ def genEffH(mat,numAtoms=5):
     smat=P*mat*P.T
 
     return smat
-def genEffH_dep(mat,numAtoms=2):
-    '''Find a faster way to do this operation'''
-    #DEPRECATED
-    s=[0]*2
-    s[0]=np.array([[1,0,0]]).T
-    s[1]=np.array([[0,1,0]]).T
-    smat=sparse.eye(2**numAtoms)*0j
-    smat=sparse.lil_matrix(smat)
-    for i1 in range(2**numAtoms):
-        curi1=i1
-        for j1 in range(numAtoms):
-            index1=curi1%2
-            curi1=int(curi1/2)
-            if j1==0:
-                ss1=s[index1]
-            else:
-                ss1=sparse.kron(ss1,s[index1])  
-        for i2 in range(2**numAtoms):
-            curi2=i2
-            for j2 in range(numAtoms):
-                index2=curi2%2
-                curi2=int(curi2/2)
-                if j2==0:
-                    ss2=s[index2]
-                else:
-                    ss2=sparse.kron(ss2,s[index2]) 
-            if sparse.issparse(ss1):
-                ss1=ss1.todense()
-            comp=np.complex(ss1.T*mat*ss2)
-            smat[i1,i2]=comp
-    return smat
+
 def genX(time,numAtoms=4):
     #Generates the Hx time evolution step given an effective time.
     time=time#*np.asscalar(rand(1)/100+1)
     hamilConds=calcHamilGen.HamilProp()
     hamilConds.calcVijs=[0,lambda x,y: Vij*(np.linalg.norm(np.array(x)-np.array(y))**(-6))]
     hamilConds.Detuning=[0,0]
-    #hamilConds.Is=3
     hamilConds.Is=[lambda y,t:1,0]
     hamilConds.NStates=3
     hamilConds.posList=list(map(lambda x: [0,x],range(numAtoms)))
@@ -370,12 +210,10 @@ def genX(time,numAtoms=4):
     hamil1=sparse.csc_matrix(calcHamilGen.calcHamilGen(hamilConds,0))
     apphamil=expm(-1j*1*time*hamil1)
     return apphamil
-    #appeff=genEffectHamil(apphamil,numAtoms)
-    #return appeff
+
 def genZZ(x,even=0,numAtoms=2):
-    #DEPRECATED
     #gensZZ generates the Hzz time evolution instead of from the effective times, directly with an x.
-    
+    #Where x is the Detuning and Rabi Frequency. 
     x=np.array(x)
     phase2=abs(x[0])
     Detuning1=x[1]
@@ -383,7 +221,6 @@ def genZZ(x,even=0,numAtoms=2):
     hamilConds=calcHamilGen.HamilProp()
     hamilConds.calcVijs=[0,lambda x,y: Vij*(np.linalg.norm(np.array(x)-np.array(y))**(-6))]
     hamilConds.Detuning=[0,0]
-    #hamilConds.Is=3
     hamilConds.Is=[lambda y,t: 0*(y[0]==0)*(y[1]==0)]*2
     hamilConds.NStates=3
     coupling=[1,2]
@@ -398,7 +235,6 @@ def genZZ(x,even=0,numAtoms=2):
     hamilConds=calcHamilGen.HamilProp()
     hamilConds.calcVijs=[0,lambda x,y: Vij*(np.linalg.norm(np.array(x)-np.array(y))**(-6))]
     hamilConds.Detuning=[0,Detuning1]
-    #hamilConds.Is=3
     hamilConds.Is=[lambda y,t: 0*(y[0]==0)*(y[1]==0)]*2
     hamilConds.NStates=3
     if even:
@@ -411,7 +247,7 @@ def genZZ(x,even=0,numAtoms=2):
     apphamil=expm(-1j*1*hamil1)*expm(-1j*t*hamil2)*expm(-1j*1*hamil1)
     return apphamil
 def genZZF(x,odd=0,numAtoms=4,mver=1):
-    #genZZF takes in a Detuning and Rabi Frequency x[0] and x[1] and whether to
+    #genZZF takes in a Rabi Frequency and Detuning x[0] and x[1] and whether to
     #run on odd atoms, even or for odd==3 both
     #For 4 atoms the process is hard coded in, however for 4+ atoms the a general
     #code is used. The general code does not work with 4 atoms or lower but inessence
@@ -437,13 +273,6 @@ def genZZF(x,odd=0,numAtoms=4,mver=1):
         else:
             return spkronl([eye(3),m,eye(3)])*spkronl([m,eye(3),eye(3)])*spkronl([eye(3),eye(3),m])
     else:
-        
-        #wantedZZ=expm(-1j*x[0]*setToHilbU([Z,Z],[1,2],2,I))
-        #wantedZZ=wantedZZ/wantedZZ[0,0]
-        #m=wantedZZ
-        #print(x[0])
-#        print(m.shape)
-#        print(m1.shape)
         def makeopmat(pairs):
                 opmats=[eye(3)]*numAtoms
                 for pair in pairs:
@@ -478,8 +307,8 @@ def genZZF(x,odd=0,numAtoms=4,mver=1):
             return oddMat2*oddMat1*evenMat2*evenMat1
             
 def gensZ(x,odd=0,numAtoms=1):
-    #DEPRECATED
     #gensZ generates the Hz time evolution instead of from the effective times, directly with an x.
+    #Where x is the rabi frequency and detuning. 
     hamilConds=calcHamilGen.HamilProp()
     hamilConds.calcVijs=[0,lambda x,y: Vij*(np.linalg.norm(np.array(x)-np.array(y))**(-6))]
     hamilConds.Detuning=[x[1],0]
@@ -521,41 +350,7 @@ def gensZt(tino,odd=0,numAtoms=1):
     apphamil=expm(-1j*t*hamil1)
     return apphamil
 
-def genTest(x,even=0,numAtoms=1):
-    ##DEPRECATED
-    hamilConds=calcHamilGen.HamilProp()
-    hamilConds.calcVijs=[0,lambda x,y: Vij*(np.linalg.norm(np.array(x)-np.array(y))**(-6))]
-    hamilConds.Detuning=[x[1],0]
-    hamilConds.Is=[lambda y,t: 0*(y[0]==0)*(y[1]==0)]*2
-    hamilConds.NStates=2
-    hamilConds.specialCoupling=(list(zip([[0,1]],[lambda y,t: x[0]*(y[1] % 2==even)])))
-    hamilConds.posList=list(map(lambda x: [0,x],range(numAtoms)))
-    hamilConds.numAtoms=numAtoms
-    hamil1=sparse.csc_matrix(calcHamilGen.calcHamilGen(hamilConds,0))
-    apphamil=expm(-1j*0.01*hamil1)
-    return apphamil
 
-    #appeff=genEffectHamil(apphamil,numAtoms)
-    #return appeff
-    
-def genSwap(even=0,numAtoms=2):
-    #Generates the hamiltonian for the swapping step of the process.
-    hamilConds=calcHamilGen.HamilProp()
-    hamilConds.calcVijs=[0,lambda x,y: 100]
-    hamilConds.Detuning=[0,0]
-    #hamilConds.Is=3
-    hamilConds.Is=[lambda y,t: 0*(y[0]==0)*(y[1]==0)]*2
-    hamilConds.NStates=3
-    if even:
-        hamilConds.specialCoupling=(list(zip([[0,1]],[lambda y,t: pi*(y[1] % 2==0)])))
-    else:
-        hamilConds.specialCoupling=(list(zip([[0,1]],[lambda y,t: pi*(y[1] % 2==1)])))
-    hamilConds.posList=list(map(lambda x: [0,x],range(numAtoms)))
-    hamilConds.numAtoms=numAtoms
-    hamil1=sparse.csc_matrix(calcHamilGen.calcHamilGen(hamilConds,0))
-    apphamil=expm(-1j*1*hamil1)
-    #appeff=genEffectHamil(apphamil,numAtoms)
-    return apphamil
 def spkronl(mats):
     matkron=mats[0]
     for mat in mats[1:]:
@@ -594,13 +389,7 @@ def saveMin(x,f,accept):
     
 def fullgenZZ(x):
     return genZZ(x[0:2],0)*genZZ(x[2:],1)*genZZ(x[4:6],0)
-#def innerMat(B,A):
-#    if not(sparse.issparse(A)):
-#        A=sparse.lil_matrix(A)    
-#    magn=((A.T.conjugate()*A)).diagonal().sum()
-#    #return sum(abs(A-B))
-#    out=float(abs((A.T.conjugate()*B/magn).diagonal().sum()-1))
-#    return out
+
 def innerMat(B,A):
     if sparse.issparse(A):
         A=A.todense()
@@ -628,32 +417,7 @@ def sortls(l1,l2):
     l1=list(map(l1.__getitem__, indexes))
     l2=list(map(l2.__getitem__, indexes))
     return l1,l2
-    #Z = [x for _,x in sorted(zip(l2,l1))]
-def genOptiHad():
-    ##DEPRECATED
-    #Was used in testing optimization for hadamard method
-    wanted=1/sqrt(2)*sparse.csc_matrix([[1,1],[1,-1]])
-    wanted=wanted
-    Hfull=lambda x: genTest(x[0:2])*genTest(x[2:4])
-    cost=lambda appeff:innerMat(appeff,wanted)
-    f=lambda x:cost(Hfull(x))
-    disf=lambda x,f=f:dispFunc(f,x)
-    ind=(lhs(4,50)*2*math.pi).tolist()
-    if __name__ == '__main__':
-        with Pool(28) as p:
-            a=list(map(lambda x: optimize.minimize(disf,x,bounds=[(0,20),(-20,20)]*2,method='TNC'),ind))
-    al=list(map(lambda x: x.fun,a))
-    asorted=sort2list(al,a)
-    optia=asorted[1][0]
-    return optia
-#def optiHz(t):
-#    wantedZ=expm(-1j*t*Z)
-#    wantedZ=wantedZ/wantedZ[0,0]
-#    Hfull=lambda x: gensZ(x[0:2])
-#    cost=lambda appeff:innerMat(appeff,wantedZ)
-#    f=lambda x:cost(Hfull(x))
-#    disf=lambda x,f=f:dispFunc(f,x)
-    #return optia
+
 def optiHzz(t,numAtoms=2):
     ##DEPRECATED
     wantedZZ=expm(-1j*t*setToHilbU([Z,Z],[1,2],numAtoms,I))
@@ -665,7 +429,6 @@ def optiHzz(t,numAtoms=2):
     ind=(lhs(2,100)*[3*pi,1]).tolist()
     if __name__ == '__main__':
         with Pool(28) as p:
-            #bnds=[(0,50,),(-30,30,)]*3
             a=list(p.map(lambda x: optimize.minimize(disf,x,method='Powell'),ind))
     print(a)
     al=list(map(lambda x: x.fun,a))
@@ -683,7 +446,7 @@ def genInterp(steps,load=1,save=1):
         [X,ys]=loadVar('Interps/hzzInterp.pysave')
         return lambda x: np.interp(x, X, ys)
     ys=[]
-    X=np.linspace(-pi*0.9999,pi*0.9999,steps)
+    X=np.linspace(-pi*0.999999,pi*0.999999,steps)
     global zzrabi
     for i in X:
         numAtoms=2
@@ -694,11 +457,7 @@ def genInterp(steps,load=1,save=1):
         rabi=zzrabi
         detuning=np.sign(tino)*sqrt((tin**2*rabi**2)/(math.pi**2-tin**2))
         x=[rabi,detuning]
-        #printEr(genZZ(x,0))
         Hz=genEffH(genZZ(x,0),2)
-#        top=Hz[1,1]*Hz[2,2]
-#        bot=Hz[1,1]
-#        act=Hz[3,3]
         ys.append(cmath.phase(Hz[3,3]))
     pimod=0
     for i in range(1,len(ys)):
@@ -744,6 +503,7 @@ def speedZZF(tin,odd=0,numAtoms=2):
     #For 4 atoms the process is hard coded in, however for 4+ atoms the a general
     #code is used. The general code does not work with 4 atoms or lower but inessence
     #does the same thing as the 4 atom case.
+    #This returns the effective ZZ unitary operation.  
     m=speedHzz(tin,0)
     if numAtoms==4:
         if odd==0:
@@ -786,6 +546,7 @@ def speedZZF(tin,odd=0,numAtoms=2):
         else:
             return oddMat2*oddMat1*evenMat2*evenMat1
 def speedZ(tino,odd=0,numAtoms=1):
+    #speedZ takes in the effective time tino and returns the effective Z unitary operation
     Hz=eye(2,2)+0j
     tino=(tino +math.pi)%(2*math.pi)-math.pi
     tin=math.pi-abs(tino)
@@ -960,10 +721,6 @@ def convToRydberg(times):
         if  subIndex in Hzs:
             results.append(t)
             errors.append(0)
-            #ta=optiHz(t)
-            #results.append(ta)
-            #error=ta.fun
-            #errors.append(ta.fun)
         elif subIndex in Hzzs:
             ta=optiHzz(t)
             results.append(ta)
@@ -981,6 +738,7 @@ def conv(x):
         return x
 
 def elongate(x):
+    #Make a list of lists into a single list. 
     lo=[]
     for l in x:
         if not(np.isscalar(l)):
@@ -991,6 +749,7 @@ def elongate(x):
     
 
 def makeInd(bnds,iter):
+    #Generates a well distributed but random set of starting points using Latin hypercube sampling
     ind=lhs(len(bnds),iter)
     sub=[]
     mult=[]
@@ -1004,21 +763,7 @@ def makeInd(bnds,iter):
 def getBnds(ver):
     #Bounds for different optimization input parameters, only version 7 and 8 are relevant.
     #7 is the full scheme, while 8 is the symmetric scheme, with no difference between odd and even steps.
-    if ver ==0:
-        bnds=[(0, 31.4),(-125.4, 125.4),(0, 31.4),(-125.4, 125.4),(0,2*math.pi)]
-    elif ver ==1:
-        bnds =[(-125.4, 125.4),(0, 31.4),(-125.4, 125.4),(0, 31.4),(-125.4, 125.4),(0, 31.4),(-125.4, 125.4),(0, 2*pi)]
-    elif ver==2:
-        bnds=[(0, 31.4),(-125.4, 125.4),(0,2*math.pi)]
-    elif ver==3:
-        bnds=[(-math.pi,math.pi),(-math.pi,math.pi),(0, 31.4),(-125.4, 125.4),(0, 31.4),(-125.4, 125.4),(0,2*math.pi)]
-    elif ver==4:
-        bnds=[(0, 31.4),(-125.4, 125.4),(0, 2*pi)]
-    elif ver==5:
-        bnds=[(-math.pi,math.pi),(-math.pi,math.pi),(-math.pi,math.pi),(-math.pi,math.pi),(0,2*math.pi)]
-    elif ver==6:
-        bnds=[(-math.pi,math.pi),(-math.pi,math.pi),(0,2*math.pi)]
-    elif ver==7:
+    if ver==7:
         bnds=[(0,2*pi),(-math.pi,math.pi),(-math.pi,math.pi),(-math.pi,math.pi),(-math.pi,math.pi)]
     elif ver==8:
         bnds=[(0,2*pi),(-math.pi,math.pi),(-math.pi,math.pi)]
@@ -1057,44 +802,14 @@ with Pool(8) as p:
     if run==1:
         if generate==1:
             disfver='Errorgate'
-            #for i in range(len(ind)):
-                #a00=PDE(fp, bnds,maxiters=1000).solve(show_progress=True)
-                #a00=pyswarm.pso(disf,lb,ub,maxiter=1000)
-    #        a00=optimize.basinhopping(disf,ind[0],callback=saveMin,niter=100)
-    #       a00=optimize.shgo(disf,bnds,callback=saveMin)
             a00=optimize.dual_annealing(disf,bnds,callback=saveMin)
-    #        a00=optimize.differential_evolution(disf,bnds,callback=saveMin)
             saveVar(a00,'Exports/QAOA/DAOpt-ErrorGate')
             a01=optimize.basinhopping(disf,a00.x,callback=saveMin,niter=100)
         else:
           #Continuation of Previous run
           disfver='Errorgate'
-          st=[1.68425395e+00,1.30688031e+00,-1.04350698e+01,-8.57896276e-02
-          ,-6.94392747e+00,1.10915838e+01,9.18873756e+00,5.44444250e+00
-          ,-7.42005771e+00,-4.82756092e+00,1.55600597e+00,-3.84639384e+00
-          ,-1.55091680e+01,6.29264548e+00,-9.94639609e+00,4.60954488e+00
-          ,-3.35546300e+00,4.20845431e+00,-8.08302118e+00,3.11796161e+00
-          ,4.36215059e+00,7.95655439e-01,9.82954894e+00,-3.32974501e+00
-          ,2.93383242e+00,3.44168378e+00,-4.12523759e+00,4.31830277e+00
-          ,6.59418042e+00,-1.59105416e+01,1.54361028e+00,4.00602015e+00
-          ,1.87449626e+01,-8.13963597e+00,5.89541475e+00,5.00550436e+00
-          ,-6.88837465e+00,-2.37119979e+01,1.29468298e+01,8.66985886e+00
-          ,2.84151122e+00,1.22509557e+01,1.96931215e+00,8.94096766e+00
-          ,-5.79212939e+00,4.91879504e+00,-7.13798520e+00,1.28562153e+01
-          ,-6.60719052e+00,7.74275513e+00,3.53013811e+00,6.44177062e+00
-          ,1.82217623e+01,-1.23333518e+01,-4.73879700e+00,-1.84391783e+00
-          ,6.62609166e-01,-1.54763106e+01,1.54001324e+01,-1.01758473e-01
-          ,-5.10044546e+00,9.36322916e+00,1.10915767e+01,-6.32563659e+00
-          ,2.25260779e-02,-1.26291785e+00,6.78257948e+00,-3.46052223e+00
-          ,3.23811128e-01,2.78162548e+00,5.26718477e+00,-1.26171311e+01
-          ,-3.32854458e+01,2.28308523e+01,-3.93297196e+00,3.13922768e+00
-          ,3.95184784e+00,2.43072339e+01,-1.04523383e+01,3.92896596e+00
-          ,1.23491440e+00,-6.04441168e+00,6.19350328e+00,6.25358212e+00
-          ,5.37467782e+00,-7.86248876e-01,2.95970551e+00,-6.23357502e+00
-          ,-3.16503561e+00,3.36435941e+00,5.50948732e+00,1.27878693e+01
-          ,-2.53780201e+00,-3.84347182e-01,-6.27404843e+00,3.91817145e+00
-          ,4.39313599e+00,-5.28560878e+00,2.26136911e+00,-1.56442637e-02]
-          
+          #To continue with the basin hopping method Uncomment below and fill in st to your previous selected result.
+          #st=[{YOUR_RESULT}]
           a00=optimize.basinhopping(disf,st,callback=saveMin,niter=100)
           #a000=optimize.minimize(disf,st,method='POWELL')
 
@@ -1111,20 +826,19 @@ with Pool(8) as p:
 #GHZ State Optimization  
 with Pool(4) as p:
     numAtoms=5
-    #psiI=setToHilbU(sparse.coo_matrix([[1],[0],[0]]),[1],numAtoms,sparse.coo_matrix([[1],[0],[0]])).todense()
-    gState=setToHilbU(np.array([[1,0,0]]).T,[1],numAtoms,np.array([[1,0,0]]).T)
+    gState=setToHilbU(np.array([[1,0,0]]).T,[1],numAtoms,np.array([[1,0,0]]).T) #Ground State
     #Direct is whether one is using the approximate method or the full method. 
     direct=0
     pulsever=8
     if not(direct):
-        psiI=genEffState(setToHilbU(sparse.coo_matrix([[1],[0],[0]]),[1],numAtoms,sparse.coo_matrix([[1],[0],[0]])).todense())
-        obState=genEffState(((setToHilbU(np.array([[0,1,0]]),[1],numAtoms,np.array([[0,1,0]])).T+gState)*1/math.sqrt(2))).getH()
+        psiI=genEffState(setToHilbU(sparse.coo_matrix([[1],[0],[0]]),[1],numAtoms,sparse.coo_matrix([[1],[0],[0]])).todense())#Initial State
+        obState=genEffState(((setToHilbU(np.array([[0,1,0]]),[1],numAtoms,np.array([[0,1,0]])).T+gState)*1/math.sqrt(2))).getH()#Objective State
         cost=lambda ys,obState=obState: -sum(abs(obState*ys)**2)
         f=lambda x,parallel=0,psiI=psiI,cost=cost: cost((indirectQAOA(parseInput(x,pulsever),psiI,pulsever,parallel)))
         dynf=lambda x,parallel=0,psiI=psiI,cost=cost: (indirectQAOA(parseInput(x,pulsever),psiI,pulsever,parallel))
     else:
-        obState=((setToHilbU(np.array([[0,1,0]]).T,[1],numAtoms,np.array([[0,1,0]]).T)+gState)*1/math.sqrt(2)).getH()
-        psiI=setToHilbU(sparse.coo_matrix([[1],[0],[0]]),[1],numAtoms,sparse.coo_matrix([[1],[0],[0]]))
+        obState=((setToHilbU(np.array([[0,1,0]]).T,[1],numAtoms,np.array([[0,1,0]]).T)+gState)*1/math.sqrt(2)).getH()#Objective State
+        psiI=setToHilbU(sparse.coo_matrix([[1],[0],[0]]),[1],numAtoms,sparse.coo_matrix([[1],[0],[0]]))#Initial State
         cost=lambda ys,obState=obState: -sum(abs(obState*ys)**2)
         f=lambda x,parallel=1,psiI=psiI,cost=cost: cost((directQAOA(parseInput(x,pulsever),psiI,pulsever,parallel)))
         dynf=lambda x,parallel=1,psiI=psiI,cost=cost: (directQAOA(parseInput(x,pulsever),psiI,pulsever,parallel))
@@ -1156,29 +870,12 @@ with Pool(4) as p:
               batch=5,  # number of calls that will be evaluated in parallel
               resfile='output.csv')  # text file where results will be saved
         elif typeofrun=='continue':
-            st=[1.56942778,-2.73818117,2.99664617,-2.35470818,15.98498056,-3.20489481
-              ,3.14315246,-2.86270118,-3.20710609,3.92745947,0.52994471,-3.34000893
-              ,5.49894979,3.25602242,3.07350632,9.42594902,3.40634481,-3.2845338
-              ,3.92706807,-2.96511505,3.09080959,4.71402295,2.63532735,6.03382085]
-            st=[1.57080836,-21.58938708,14.04562439,3.14161941,12.968122
-            ,-4.80393761,1.57078397,-7.84831993,1.47243185,-3.14161004
-            ,1.31675997,-6.29155909,1.57079216,1.47393291,9.31992624
-            ,9.42477836,-1.66770349,-9.52959919,1.57079712,-28.00772878
-            ,4.62236974,-1.57079843,0.920481,0.83748761]
-            #a10=optimize.minimize(disf,st,method='Nelder-Mead')
+            #To continue with the basin hopping method Uncomment below and fill in your previous selected result.
+#            st=[1.56942778,-2.73818117,2.99664617,-2.35470818,15.98498056,-3.20489481
+#              ,3.14315246,-2.86270118,-3.20710609,3.92745947,0.52994471,-3.34000893
+#              ,5.49894979,3.25602242,3.07350632,9.42594902,3.40634481,-3.2845338
+#              ,3.92706807,-2.96511505,3.09080959,4.71402295,2.63532735,6.03382085]
             a10=optimize.basinhopping(disf,st,callback=saveMin)
-#    a10=[]
-#    for i in range(len(ind)):
-#        a=optimize.minimize(disf,ind[i],bounds=bnds)
-#        a10.append(a)
-st=[ 2.94559903e+00, -1.68077766e+00,  5.49216002e-01, -1.71712503e+00,
-        1.71794266e+00,  1.75554957e-01,  2.52156145e+00, -2.21745502e-01,
-        1.69651623e+00,  2.83233181e+00, -6.06506758e-01,  3.02776449e+00,
-        1.50363665e+00, -1.74734285e+00,  5.60907654e+00, -3.80880962e-01,
-       -3.04505292e+00, -2.64897102e+00, -5.24949541e-01,  5.30711086e+00,
-        3.11683388e+00, -3.14159265e+00,  1.57388707e+00, -2.58018920e+00,
-        2.29277388e+00, -3.03652040e-03, -1.99865944e-01,  8.23841874e-01,
-       -1.42615449e+00,  5.46864176e+00]
 #--------------------
 #Cluster State Optimization
 with Pool(8) as p:
@@ -1297,44 +994,6 @@ with Pool(20) as p:
             
             
 #------------------------------------------------------------------------------
- 
-#st=[1.57018765,8.11008932,-3.25074604,2.36294202,-5.11385023
-#,-3.32895604,-3.1433517,-8.40017294,9.4077575,0.78232634
-#,4.7509745,6.28025098,6.22693141,6.43813779,-4.8259502
-#,4.71334952,13.19502598,-3.25204668,3.14507373,10.0517592
-#,-3.24534575,1.57537748,-13.84385581,4.60856322]
-#st=[ 3.33615291e+00,  3.03259738e+00, -7.58656839e+00, -8.90247571e-02,
-#    3.03566411e+00,  1.54715744e+00,  1.30810219e+01,  1.14447336e+01,
-#   -3.14338196e+00, -8.81280608e+00,  5.07498896e+00, -8.24290154e+00,
-#    3.68709649e-01, -2.60490222e-02, -5.94664983e-01,  1.92049058e+00,
-#   -2.62856671e+00,  1.31411343e+00,  6.29956936e+00, -2.53418424e+00,
-#   -1.69995928e+00, -3.54853138e+00,  2.83652924e+00, -3.90565861e+00,
-#    3.72962122e-01,  2.24885739e+00, -2.82786486e+00, -2.22997994e+00,
-#    2.93252067e+00,  6.69146426e-02,  2.54079844e+00, -2.02537876e+00,
-#   -1.33429520e+00,  1.06598158e+00, -1.72174257e+00,  2.44550050e-02,
-#    5.60236620e+00,  7.73379617e+00, -3.96781910e+00,  1.46956965e+00,
-#    3.97220537e+00, -4.47928671e+00,  4.32386031e+00, -3.15452252e+00,
-#    1.08699661e-02,  4.79291787e+00, -2.34836189e+00,  2.39457135e+00,
-#   -3.31548248e+00,  2.99443796e+00,  4.68086115e+00,  2.40927310e-01,
-#    1.31500739e-01, -4.89817477e-03, -3.27400057e+00,  4.71961185e+00,
-#    8.35483315e+00,  4.62851176e+00, -4.78067159e+00, -3.23211991e+00,
-#    2.22238827e+00,  1.70074569e+00, -7.74600528e+00,  6.29944689e+00,
-#   -1.05014951e-01,  1.52410467e+00,  4.01194224e+00, -2.12833113e+00,
-#   -4.33128676e-03, -3.22660642e+00,  4.74964805e+00, -1.48053857e+01,
-#   -3.53939245e-01, -3.35447645e+00,  9.01380276e+00,  6.69261422e-01,
-#   -2.58937179e+00, -1.35194587e+01,  6.39582606e+00,  6.54189259e+00,
-#    5.24390325e+00, -4.67783215e+00, -3.09059840e+00, -3.81685686e+00,
-#   -3.33477781e+00,  4.64228992e+00, -7.56037558e-02, -6.08453380e+00,
-#    3.09385215e+00,  1.53795689e-03,  6.10775791e+00,  1.11636321e+01,
-#   -1.54951769e+00, -4.80176613e-02, -6.25564739e+00,  7.92243106e+00,
-#    6.39972888e+00, -1.31184018e+01,  8.92783549e+00, -3.14159266e+00,
-#    8.53764518e+00, -9.10107072e+00, -4.32939123e+00, -1.09114666e-01,
-#    9.11746248e+00,  8.41558521e+00, -3.10576302e+00,  7.67791620e+00,
-#    3.14153566e+00,  1.35506879e+00,  3.17757225e+00,  6.23642426e+00,
-#    1.76980128e+01, -3.31864038e+00, -5.78182162e+00,  4.34936739e+00,
-#   -4.38722429e+00, -2.17662261e+00, -6.41252308e-02,  4.54510803e+00,
-#    4.57656314e+00, -2.74591161e-02, -2.93203439e+00,  3.09135587e+00,
-#   -4.91626857e+00]
 
 newst=[]
 for i in range(len(st)):
